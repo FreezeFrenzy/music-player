@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>My Music</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    background: #101010;
+    color: white;
+    font-family: Arial, sans-serif;
+}
+
+.container {
+    max-width: 600px;
+    margin: auto;
+    padding: 20px;
+    padding-bottom: 150px;
+}
+
+h1 {
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+.player {
+    background: #1d1d1d;
+    padding: 20px;
+    border-radius: 20px;
+    text-align: center;
+}
+
+.cover {
+    width: 240px;
+    height: 240px;
+    margin: auto;
+    border-radius: 15px;
+    overflow: hidden;
+    background: #292929;
+}
+
+.cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.title {
+    font-size: 21px;
+    font-weight: bold;
+    margin-top: 18px;
+}
+
+.artist {
+    color: #999;
+    margin-top: 7px;
+}
+
+.progress {
+    margin-top: 20px;
+}
+
+#progress {
+    width: 100%;
+}
+
+.time {
+    display: flex;
+    justify-content: space-between;
+    color: #888;
+    font-size: 12px;
+}
+
+.controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 25px;
+    margin-top: 20px;
+}
+
+.controls button {
+    border: none;
+    background: none;
+    color: white;
+    font-size: 25px;
+    cursor: pointer;
+}
+
+.play {
+    width: 60px;
+    height: 60px;
+    background: white !important;
+    color: black !important;
+    border-radius: 50%;
+}
+
+.volume {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+#volume {
+    flex: 1;
+}
+
+h2 {
+    font-size: 18px;
+    margin-top: 30px;
+}
+
+.song {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    margin-bottom: 8px;
+    background: #1d1d1d;
+    border-radius: 12px;
+    cursor: pointer;
+}
+
+.song:hover {
+    background: #282828;
+}
+
+.song img {
+    width: 55px;
+    height: 55px;
+    border-radius: 8px;
+    object-fit: cover;
+}
+
+.song-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.song-title {
+    font-weight: bold;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.song-artist {
+    color: #888;
+    font-size: 13px;
+    margin-top: 4px;
+}
+
+.play-icon {
+    font-size: 20px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>🎵 My Music</h1>
+
+    <div class="player">
+
+        <div class="cover">
+            <img id="cover" src="covers/song1.jpg">
+        </div>
+
+        <div class="title" id="title">
+            Song 1
+        </div>
+
+        <div class="artist" id="artist">
+            My Artist
+        </div>
+
+        <audio id="audio"></audio>
+
+        <div class="progress">
+
+            <input
+                type="range"
+                id="progress"
+                min="0"
+                max="100"
+                value="0"
+            >
+
+            <div class="time">
+                <span id="currentTime">0:00</span>
+                <span id="duration">0:00</span>
+            </div>
+
+        </div>
+
+        <div class="controls">
+
+            <button id="previous">
+                ⏮
+            </button>
+
+            <button class="play" id="play">
+                ▶
+            </button>
+
+            <button id="next">
+                ⏭
+            </button>
+
+        </div>
+
+        <div class="volume">
+
+            🔊
+
+            <input
+                type="range"
+                id="volume"
+                min="0"
+                max="1"
+                step="0.01"
+                value="1"
+            >
+
+        </div>
+
+    </div>
+
+
+    <h2>Playlist</h2>
+
+    <div id="playlist"></div>
+
+</div>
+
+
+<script>
+
+const songs = [
+
+    {
+        title: "Song 1",
+        artist: "My Artist",
+        file: "music/song1.mp3",
+        cover: "covers/song1.jpg"
+    },
+
+    {
+        title: "Song 2",
+        artist: "My Artist",
+        file: "music/song2.mp3",
+        cover: "covers/song2.jpg"
+    },
+
+    {
+        title: "Song 3",
+        artist: "My Artist",
+        file: "music/song3.mp3",
+        cover: "covers/song3.jpg"
+    }
+
+];
+
+
+const audio = document.getElementById("audio");
+
+const playButton =
+    document.getElementById("play");
+
+const previousButton =
+    document.getElementById("previous");
+
+const nextButton =
+    document.getElementById("next");
+
+const progress =
+    document.getElementById("progress");
+
+const volume =
+    document.getElementById("volume");
+
+const title =
+    document.getElementById("title");
+
+const artist =
+    document.getElementById("artist");
+
+const cover =
+    document.getElementById("cover");
+
+const currentTime =
+    document.getElementById("currentTime");
+
+const duration =
+    document.getElementById("duration");
+
+const playlist =
+    document.getElementById("playlist");
+
+
+let currentSong = 0;
+
+
+// Load song
+function loadSong(index) {
+
+    currentSong = index;
+
+    const song = songs[index];
+
+    audio.src = song.file;
+
+    title.textContent = song.title;
+    artist.textContent = song.artist;
+
+    cover.src = song.cover;
+
+    progress.value = 0;
+
+    updatePlaylist();
+}
+
+
+// Play / pause
+playButton.addEventListener("click", () => {
+
+    if (audio.paused) {
+
+        audio.play();
+
+    } else {
+
+        audio.pause();
+
+    }
+
+});
+
+
+audio.addEventListener("play", () => {
+
+    playButton.textContent = "⏸";
+
+});
+
+
+audio.addEventListener("pause", () => {
+
+    playButton.textContent = "▶";
+
+});
+
+
+// Next
+nextButton.addEventListener("click", () => {
+
+    currentSong++;
+
+    if (currentSong >= songs.length) {
+        currentSong = 0;
+    }
+
+    loadSong(currentSong);
+
+    audio.play();
+
+});
+
+
+// Previous
+previousButton.addEventListener("click", () => {
+
+    currentSong--;
+
+    if (currentSong < 0) {
+        currentSong = songs.length - 1;
+    }
+
+    loadSong(currentSong);
+
+    audio.play();
+
+});
+
+
+// Automatically play next
+audio.addEventListener("ended", () => {
+
+    currentSong++;
+
+    if (currentSong >= songs.length) {
+        currentSong = 0;
+    }
+
+    loadSong(currentSong);
+
+    audio.play();
+
+});
+
+
+// Progress
+audio.addEventListener("timeupdate", () => {
+
+    if (!audio.duration) return;
+
+    progress.value =
+        (audio.currentTime / audio.duration) * 100;
+
+    currentTime.textContent =
+        formatTime(audio.currentTime);
+
+});
+
+
+audio.addEventListener("loadedmetadata", () => {
+
+    duration.textContent =
+        formatTime(audio.duration);
+
+});
+
+
+progress.addEventListener("input", () => {
+
+    audio.currentTime =
+        (progress.value / 100) * audio.duration;
+
+});
+
+
+volume.addEventListener("input", () => {
+
+    audio.volume = volume.value;
+
+});
+
+
+function formatTime(seconds) {
+
+    if (isNaN(seconds)) {
+        return "0:00";
+    }
+
+    const minutes =
+        Math.floor(seconds / 60);
+
+    const secondsPart =
+        Math.floor(seconds % 60)
+        .toString()
+        .padStart(2, "0");
+
+    return minutes + ":" + secondsPart;
+
+}
+
+
+// Create playlist
+function createPlaylist() {
+
+    playlist.innerHTML = "";
+
+    songs.forEach((song, index) => {
+
+        const element =
+            document.createElement("div");
+
+        element.className = "song";
+
+        element.innerHTML = `
+
+            <img src="${song.cover}">
+
+            <div class="song-info">
+
+                <div class="song-title">
+                    ${song.title}
+                </div>
+
+                <div class="song-artist">
+                    ${song.artist}
+                </div>
+
+            </div>
+
+            <div class="play-icon">
+                ▶
+            </div>
+
+        `;
+
+        element.addEventListener("click", () => {
+
+            loadSong(index);
+
+            audio.play();
+
+        });
+
+        playlist.appendChild(element);
+
+    });
+
+}
+
+
+function updatePlaylist() {
+
+    const elements =
+        document.querySelectorAll(".song");
+
+    elements.forEach((element, index) => {
+
+        if (index === currentSong) {
+
+            element.style.border =
+                "1px solid #2d7cff";
+
+        } else {
+
+            element.style.border =
+                "1px solid transparent";
+
+        }
+
+    });
+
+}
+
+
+// Start
+createPlaylist();
+
+loadSong(0);
+
+</script>
+
+</body>
+</html>
